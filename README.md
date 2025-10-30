@@ -68,34 +68,9 @@ npm start
 # Runs the app in development mode
 ```
 
----
+ 
 
-## 📁 Project Structure
-
-```
-frontend-projects/
-├── html-css-js-project/       # Vanilla frontend project
-├── react-dashboard/           # React + Tailwind dashboard app
-├── portfolio-website/         # Personal portfolio template
-├── landing-page/              # Responsive landing page design
-├── weather-app/               # API-based JS project
-├── README.md                  # Project documentation
-└── assets/                    # Common assets (icons, images, etc.)
-```
-
----
-
-## 🌐 UI Overview
-
-| Component / Project           | Description                                               |
-|-------------------------------|-----------------------------------------------------------|
-| Portfolio Website             | Personal portfolio template with animations and dark mode |
-| React Dashboard               | Interactive admin dashboard with Tailwind UI components   |
-| Weather App                   | Real-time weather updates via API integration             |
-| Landing Page                  | Modern responsive landing page with smooth scrolling      |
-| HTML/CSS Showcase             | Simple UI experiments and micro-interactions              |
-
----
+ 
 
 ## 📊 Tech Stack Highlights
 
