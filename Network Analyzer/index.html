@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Network Guardian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .row-animate { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Modal Animation */
+        .modal-enter { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 font-sans p-6 min-h-screen relative">
+
+    <header class="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-brain text-purple-500 text-3xl"></i>
+            <div>
+                <h1 class="text-2xl font-bold text-white tracking-tight">AI Network Guardian</h1>
+                <p class="text-xs text-slate-500 font-mono">Connected to Python AI Engine</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-2">
+            <button onclick="startCapture()" id="btn-start" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-emerald-900/50 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-play"></i> START
+            </button>
+            <button onclick="stopCapture()" id="btn-stop" class="bg-red-900/50 text-red-400 border border-red-800 hover:bg-red-900 px-4 py-2 rounded text-sm font-bold transition-all flex items-center gap-2">
+                <i class="fa-solid fa-pause"></i> STOP
+            </button>
+            <button onclick="resetDashboard()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded text-sm font-bold border border-slate-700 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-rotate-right"></i> RESET
+            </button>
+            <div class="h-6 w-px bg-slate-700 mx-2"></div>
+            <button onclick="askAI()" class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-purple-900/50 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> AI SUGGESTION
+            </button>
+        </div>
+    </header>
+
+    <div class="flex justify-end mb-4">
+        <span id="connection-status" class="text-xs font-mono bg-red-900/30 text-red-400 px-3 py-1 rounded border border-red-800">
+            DISCONNECTED
+        </span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-slate-900 border border-slate-800 rounded p-4 flex items-center">
+            <div class="p-3 rounded-full bg-blue-500/20 text-blue-500 mr-4"><i class="fa-solid fa-wave-square"></i></div>
+            <div>
+                <h3 class="text-slate-400 text-xs uppercase">Packets Scanned</h3>
+                <div id="stat-total" class="text-2xl font-bold text-white">0</div>
+            </div>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded p-4 flex items-center">
+            <div class="p-3 rounded-full bg-red-500/20 text-red-500 mr-4"><i class="fa-solid fa-virus"></i></div>
+            <div>
+                <h3 class="text-slate-400 text-xs uppercase">Threats Blocked</h3>
+                <div id="stat-threats" class="text-2xl font-bold text-white">0</div>
+            </div>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded p-4 flex items-center">
+            <div class="p-3 rounded-full bg-emerald-500/20 text-emerald-500 mr-4"><i class="fa-solid fa-shield-halved"></i></div>
+            <div>
+                <h3 class="text-slate-400 text-xs uppercase">System Status</h3>
+                <div id="sys-status" class="text-lg font-bold text-emerald-400">SECURE</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[500px]">
+        
+        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded flex flex-col overflow-hidden">
+            <div class="p-3 border-b border-slate-800 bg-slate-800/50 flex justify-between">
+                <h2 class="font-semibold text-sm"><i class="fa-solid fa-list-ul mr-2"></i>Live Traffic Stream</h2>
+            </div>
+            <div class="flex-1 overflow-auto relative">
+                <table class="w-full text-left text-xs font-mono">
+                    <thead class="bg-slate-950 text-slate-400 sticky top-0">
+                        <tr>
+                            <th class="p-3">Time</th>
+                            <th class="p-3">Source IP</th>
+                            <th class="p-3">Dest Port</th>
+                            <th class="p-3">Proto</th>
+                            <th class="p-3">AI Verdict</th>
+                            <th class="p-3">Info</th>
+                        </tr>
+                    </thead>
+                    <tbody id="packet-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-6">
+            <div class="bg-slate-900 border border-slate-800 rounded p-4 h-1/3 flex flex-col">
+                <h2 class="text-xs font-semibold text-slate-500 uppercase mb-2">Real-time Alert Box</h2>
+                <div id="alert-box" class="flex-1 flex items-center justify-center text-slate-600 text-sm italic border border-dashed border-slate-700 rounded bg-slate-950/50 p-4">
+                    Monitoring Active...
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded p-4 h-2/3 flex flex-col">
+                <h2 class="text-xs font-semibold text-slate-500 uppercase mb-2">Traffic Load</h2>
+                <div class="flex-1 w-full relative">
+                    <canvas id="trafficChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="ai-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm" onclick="closeModal()">
+        <div class="bg-slate-900 border border-purple-500/50 p-6 rounded-lg max-w-md w-full shadow-2xl modal-enter relative" onclick="event.stopPropagation()">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-3 bg-purple-600 rounded-full"><i class="fa-solid fa-robot text-white text-xl"></i></div>
+                <h2 class="text-xl font-bold text-white">AI Analyst Report</h2>
+            </div>
+            <div id="ai-modal-content" class="text-slate-300 text-sm leading-relaxed mb-6 font-mono bg-slate-950 p-4 rounded border border-slate-800">
+                Analyzing traffic patterns...
+            </div>
+            <button onclick="closeModal()" class="w-full bg-purple-600 hover:bg-purple-500 text-white py-2 rounded font-bold transition-colors">
+                Acknowledge
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA STORE ---
+        let capturedPackets = []; 
+        let stats = { total: 0, threats: 0 };
+        let ws = null;
+        let isConnected = false;
+        
+        // ** STREAK COUNTER FOR SAFETY CHECK **
+        let benignStreak = 0; 
+
+        // --- CHART SETUP ---
+        const ctx = document.getElementById('trafficChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array(20).fill(''),
+                datasets: [{
+                    label: 'Packet Size',
+                    data: Array(20).fill(0),
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    tension: 0.4, fill: true, pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { display: false }, y: { display: true, grid: { color: '#1e293b' } } },
+                animation: false
+            }
+        });
+
+        // --- BUTTON FUNCTIONS ---
+
+        function startCapture() {
+            if (isConnected) return;
+            
+            ws = new WebSocket('ws://localhost:8765');
+
+            ws.onopen = () => {
+                isConnected = true;
+                updateStatus("CONNECTED", "bg-emerald-900/30 text-emerald-400 border-emerald-800");
+                toggleButtons(true);
+            };
+
+            ws.onmessage = (event) => {
+                const packet = JSON.parse(event.data);
+                processPacket(packet);
+            };
+
+            ws.onclose = () => {
+                isConnected = false;
+                updateStatus("DISCONNECTED", "bg-red-900/30 text-red-400 border-red-800");
+                toggleButtons(false);
+            };
+
+            ws.onerror = () => {
+                alert("Could not connect to Python Server. Is 'server.py' running?");
+            }
+        }
+
+        function stopCapture() {
+            if (ws) {
+                ws.close();
+            }
+        }
+
+        function resetDashboard() {
+            capturedPackets = [];
+            stats = { total: 0, threats: 0 };
+            benignStreak = 0;
+            
+            document.getElementById('packet-table-body').innerHTML = '';
+            document.getElementById('stat-total').innerText = '0';
+            document.getElementById('stat-threats').innerText = '0';
+            document.getElementById('alert-box').innerHTML = 'System Reset. Ready to monitor.';
+            
+            const statusLabel = document.getElementById('sys-status');
+            statusLabel.innerText = "SECURE";
+            statusLabel.className = "text-lg font-bold text-emerald-400";
+            
+            chart.data.datasets[0].data = Array(20).fill(0);
+            chart.update();
+        }
+
+        function askAI() {
+            const modal = document.getElementById('ai-modal');
+            const content = document.getElementById('ai-modal-content');
+            
+            let suggestion = "";
+            if (stats.threats === 0 && stats.total > 0) {
+                suggestion = "✅ <strong class='text-emerald-400'>System Healthy.</strong>\n\nNo anomalies detected in the last " + stats.total + " packets. Recommend maintaining current firewall rules.";
+            } else if (stats.threats > 0) {
+                suggestion = "⚠️ <strong class='text-red-400'>ACTION REQUIRED</strong>\n\n";
+                suggestion += `The AI Model detected <strong>${stats.threats} threats</strong>.\n`;
+                suggestion += "--------------------------------------\n";
+                suggestion += "<strong>Recommendation:</strong>\n";
+                suggestion += "1. Block source IPs associated with Port 1337 & 4444.\n";
+                suggestion += "2. Patch SQL Injection vulnerability on /products.php.\n";
+            } else {
+                suggestion = "Waiting for traffic data... Please press START.";
+            }
+            content.innerHTML = suggestion;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('ai-modal').classList.add('hidden');
+            document.getElementById('ai-modal').classList.remove('flex');
+        }
+
+        // --- CORE LOGIC ---
+
+        function processPacket(pkt) {
+            // 1. Storage
+            capturedPackets.push(pkt);
+            if (capturedPackets.length > 500) capturedPackets.shift(); 
+
+            // 2. Stats & Status Logic
+            stats.total++;
+            document.getElementById('stat-total').innerText = stats.total.toLocaleString();
+
+            const statusLabel = document.getElementById('sys-status');
+            const alertBox = document.getElementById('alert-box');
+
+            if (pkt.ai_verdict !== 'BENIGN') {
+                // --- THREAT DETECTED ---
+                stats.threats++;
+                document.getElementById('stat-threats').innerText = stats.threats;
+                
+                // RESET STREAK TO 0
+                benignStreak = 0; 
+
+                // Turn Critical Immediately
+                statusLabel.innerText = "CRITICAL";
+                statusLabel.className = "text-lg font-bold text-red-500 animate-pulse";
+
+                // Show Alert
+                alertBox.innerHTML = `
+                    <div class="text-left animate-pulse">
+                        <div class="text-red-500 font-bold text-sm mb-1"><i class="fa-solid fa-triangle-exclamation"></i> BLOCKING THREAT</div>
+                        <div class="text-white text-xs">IP: ${pkt.src_ip}</div>
+                        <div class="text-white text-xs">Reason: ${pkt.alert_msg}</div>
+                    </div>
+                `;
+            } else {
+                // --- NORMAL TRAFFIC ---
+                // Only count streaks if we are currently in CRITICAL mode
+                if (statusLabel.innerText === "CRITICAL") {
+                    benignStreak++;
+                    
+                    // Update alert box to show cooldown progress
+                    alertBox.innerHTML = `
+                        <div class="text-yellow-500 text-xs">
+                            <i class="fa-solid fa-hourglass-half"></i> Verifying safety... (${benignStreak}/20)
+                        </div>
+                    `;
+                }
+
+                // REQUIRE 20 SAFE PACKETS IN A ROW TO RESET
+                if (benignStreak > 20 && statusLabel.innerText === "CRITICAL") {
+                    statusLabel.innerText = "SECURE";
+                    statusLabel.className = "text-lg font-bold text-emerald-400";
+                    
+                    alertBox.innerHTML = '<span class="text-emerald-500 text-xs"><i class="fa-solid fa-check"></i> System Stabilized. Monitoring...</span>';
+                    benignStreak = 0; // Reset counter for next time
+                }
+            }
+
+            // 3. Table Update
+            const tbody = document.getElementById('packet-table-body');
+            const row = document.createElement('tr');
+            row.className = "row-animate border-b border-slate-800 hover:bg-slate-800";
+            
+            let verdictColor = "text-emerald-500";
+            if(pkt.ai_verdict === "MALICIOUS") verdictColor = "text-red-500 font-bold";
+            if(pkt.ai_verdict === "SUSPICIOUS") verdictColor = "text-yellow-500";
+
+            row.innerHTML = `
+                <td class="p-3 text-slate-500">${pkt.timestamp}</td>
+                <td class="p-3 text-blue-400">${pkt.src_ip}</td>
+                <td class="p-3 text-purple-400">${pkt.dest_port}</td>
+                <td class="p-3">${pkt.protocol}</td>
+                <td class="p-3 ${verdictColor}">${pkt.ai_verdict}</td>
+                <td class="p-3 text-slate-400 text-xs">${pkt.alert_msg}</td>
+            `;
+            tbody.prepend(row);
+            if (tbody.children.length > 20) tbody.lastChild.remove();
+
+            // 4. Chart Update
+            const data = chart.data.datasets[0].data;
+            data.shift();
+            data.push(pkt.length);
+            chart.update();
+        }
+
+        function updateStatus(text, classes) {
+            const el = document.getElementById('connection-status');
+            el.innerText = text;
+            el.className = `text-xs font-mono px-3 py-1 rounded border ${classes}`;
+        }
+
+        function toggleButtons(isRunning) {
+            const btnStart = document.getElementById('btn-start');
+            const btnStop = document.getElementById('btn-stop');
+            
+            if (isRunning) {
+                btnStart.classList.add('opacity-50', 'cursor-not-allowed');
+                btnStop.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnStop.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        toggleButtons(false);
+    </script>
+</body>
+</html>
