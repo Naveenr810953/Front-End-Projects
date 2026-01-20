@@ -4,7 +4,7 @@ import json
 import random
 from datetime import datetime
 
-class NetworkAI:
+class NetworkAI:  
     def __init__(self):
         print("🧠 AI Model Initialized: Demo Mode")
 
